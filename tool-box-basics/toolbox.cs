@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System;
 
-namespace ToolBoxBasics
+namespace Toolbox
 {
     public static class Extentions 
     {
