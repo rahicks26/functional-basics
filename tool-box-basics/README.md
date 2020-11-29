@@ -5,20 +5,7 @@ In functional programming we pefer to use many small declartive fucntions that a
 ## Mapping And Filtering
 Perhaps the gateway drug of fucntional programming mapping and filtering fucntions have become quite popular in most object oritinted languages over the last decade or so. As they ahve come into fasion developers have leaned less and less of the old trusty for loop. 
 
-At its core the mapping function simple applies a transformation to each element in an array. To understand this better lets look at a few different basic implementations:
-
-```fs
-    // Basic implementation of map in F#
-    // F# provides numerous implementations of map for various data types.
-    let rec map' f lis = 
-        match lis with
-        | x :: xs -> (f x) :: map' f xs
-        | [] -> []
-```
-
-First up is my favorite F#. This implementation that follows is designed to work with F# lists, but it demostrates the general solution well. Take a collection when it has at least one item apply that item to the provided function. When no more items are left return an empty list. 
-
-Now for a lttle haskell:
+Lets jump into some basic sketches of how we could build map
 
 ```hs
     -- Simple implementation of map in Haskell.
@@ -28,9 +15,14 @@ Now for a lttle haskell:
     map' f (x:xs) = f x : map f xs
 ```
 
-As you can see the two implementations look the same, but beacause of a few specifics about the underlying languages the haskell version is arguable more felxable the our F# implementation.
-
-How about a little C#?
+```fs
+    // Basic implementation of map in F#
+    // F# provides numerous implementations of map for various data types.
+    let rec map' f lis = 
+        match lis with
+        | x :: xs -> (f x) :: map' f xs
+        | [] -> []
+```
 
 ```cs
     // Basic implementation of Map in C#
@@ -44,9 +36,6 @@ How about a little C#?
             yield return func(item);
     }
 ```
-Here I opted to go for a more imparitive solution, mainly becuase working with enumorators directly can get verbose quickly and would really take away from the point. Now, it is note worthy that this is the first time we had to worry about nulls... Either way the implementation is very simple we and actually works for any standard collection in C#. 
-
-Lets see what this looks like in js.
 
 ```js
     // Basic implementation of map in js
@@ -64,4 +53,107 @@ Lets see what this looks like in js.
         return Array.from(_map(arr,func));
     }
 ```
-Well I am pickup a trend here the weaker my type system gets the more verbose my guard clauses are, also we did opt to use a generator here, but since most js devs would expect an array back we will just make a new one for them.
+
+Now lets see how we might take on filtering in each language.
+
+```hs
+    -- Simple implementation of filter in Haskell
+    -- Hakell provides a great general purpose implementation of filter.
+    filter' :: (a -> Bool) -> [a] -> [a]
+    filter' _ [] = []
+    filter' predicate (x:xs)
+        | predicate x = x : filter' predicate xs
+        | otherwise   = filter' predicate xs
+```
+
+```fs
+    // Basic implementation of filter in F#
+    // F# provides numerous implementations of filter for various data types.
+    let rec filter' f lis =
+        match lis with
+        | x :: xs when f x -> x :: filter' f xs
+        | _ :: xs -> filter' f xs
+        | [] -> []
+```
+
+```cs
+    // Basic implementation of Filter in C#
+       // C# provides a great implementation of this in the linq via the Where method.
+    public static IEnumerable<T> Filter<T>(this IEnumerable<T> arr, Func<T,bool> func)
+    {
+        if(arr is null) throw new ArgumentNullException(nameof(arr));
+        if(func is null) throw new ArgumentNullException(nameof(func));
+
+        foreach (var item in arr)
+            if(func(item)) yield return item;
+    }
+
+```
+
+```js
+    // Basic implementation of filter in js
+    // js implements this as a member method on the Array class
+    function filter(arr, func){
+        if(!arr || !Array.isArray(arr)) return arr;
+        if(!func || typeof func !== 'function') return arr;
+
+        const _filter = (arr, func) => {
+            for (const item of arr) {
+                if(func(item)) yield item; 
+            }};
+
+        return Array.from(_filter(arr,func));
+    }
+```
+Well that was interesting, but did you notice the general pattern that emerged in each of these solutions? Take a list, apply a function to it and accumulate up another list (using the word list here very losely). Well that brings me to my next toolbox function fold. 
+
+```hs
+    -- Simple implementation of fold in Haskell
+    --
+    fold' :: (cur -> acc -> acc) -> acc -> [cur] -> acc
+    fold' _ _ [] = []
+    fold' f acc (x:xs) = f x (fold' f acc xs)
+
+```
+
+```fs
+    // Basic implementation of fold in F#
+    // F# has 
+    let rec fold' f acc lis =
+        match lis with
+        | x :: xs  ->  f x (fold' f acc xs)
+        | [] -> acc
+```
+
+```cs
+    // Basic implementation of Fold in C#
+    // C# implaments this as the linq method Aggrigate
+    public static IEnumerable<TOut> Fold<TIn,TOut>(this IEnumerable<TIn> arr, Func<TIn,TOut,TOut> func, TOut acc){
+        if(arr is null) throw new ArgumentNullException(nameof(arr));
+        if(func is null) throw new ArgumentNullException(nameof(func));
+
+        var _acc = acc;
+        
+        foreach (var item in arr){
+            _acc = func(item, _acc);
+        }
+
+        return _acc;          
+    }
+```
+
+```js
+    // Basic implementation of fold in js
+    // js implamnets this as reduce on the Array class.
+    function fold(arr, func, acc){
+        if(!arr || !Array.isArray(arr)) return arr;
+        if(!func || typeof func !== 'function') return arr;
+
+        let _acc = acc;
+        for (const item of arr) {
+            _acc = func(item, _acc);
+        }
+
+        return _acc;
+    }
+```

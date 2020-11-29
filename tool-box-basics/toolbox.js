@@ -6,7 +6,7 @@
  * 
  * @returns {Array}
  */
-function map(){
+function map(arr, func){
     if(!arr || !Array.isArray(arr)) return arr;
     if(!func || typeof func !== 'function') return arr;
 
@@ -37,4 +37,22 @@ function filter(arr, func){
         }};
 
     return Array.from(_filter(arr,func));
+}
+
+/**
+ * Applies the folder to every item and returns the result.
+ * @param {Array} arr 
+ * @param {Function} func 
+ * @param {Any} acc 
+ */
+function fold(arr, func, acc){
+    if(!arr || !Array.isArray(arr)) return arr;
+    if(!func || typeof func !== 'function') return arr;
+
+    let _acc = acc;
+    for (const item of arr) {
+        _acc = func(item, _acc);
+    }
+
+    return _acc;
 }
